@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Book – Library MS{% endblock %}
+{% block page_title %}{{ action }} Book{% endblock %}
+
+{% block content %}
+<div style="max-width:700px">
+  <a href="{{ url_for('books') }}" class="btn btn-sm" style="border:1px solid var(--border);color:var(--muted);margin-bottom:20px">
+    <i class="fas fa-arrow-left"></i> Back to Books
+  </a>
+
+  <div class="card">
+    <form method="POST">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Book Title *</label>
+          <input type="text" name="title" value="{{ book.title if book else '' }}" required
+                 placeholder="e.g. Introduction to Algorithms">
+        </div>
+        <div class="form-group">
+          <label>Author *</label>
+          <input type="text" name="author" value="{{ book.author if book else '' }}" required
+                 placeholder="e.g. Thomas H. Cormen">
+        </div>
+        <div class="form-group">
+          <label>Category *</label>
+          <select name="category" required>
+            {% set cats = ['Computer Science','Programming','Database','Networking',
+                           'AI/ML','Mathematics','Physics','Chemistry','Biology',
+                           'Electronics','Mechanical','Civil','Finance','Management',
+                           'Biography','Literature','Philosophy','History','Other'] %}
+            {% for cat in cats %}
+              <option value="{{ cat }}" {{ 'selected' if book and book.category == cat }}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ISBN</label>
+          <input type="text" name="isbn" value="{{ book.isbn if book else '' }}"
+                 placeholder="e.g. 978-0262046305">
+        </div>
+        <div class="form-group">
+          <label>Publisher</label>
+          <input type="text" name="publisher" value="{{ book.publisher if book else '' }}"
+                 placeholder="e.g. MIT Press">
+        </div>
+        <div class="form-group">
+          <label>Publication Year</label>
+          <input type="number" name="year" value="{{ book.year if book else '' }}"
+                 placeholder="e.g. 2023" min="1800" max="2099">
+        </div>
+        <div class="form-group">
+          <label>Total Copies *</label>
+          <input type="number" name="total_copies" value="{{ book.total_copies if book else 1 }}"
+                 required min="1">
+        </div>
+      </div>
+      <div style="margin-top:24px;display:flex;gap:10px">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-floppy-disk"></i> {{ action }} Book
+        </button>
+        <a href="{{ url_for('books') }}" class="btn" style="border:1px solid var(--border);color:var(--muted)">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

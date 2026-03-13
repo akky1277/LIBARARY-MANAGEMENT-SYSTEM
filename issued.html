@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Issued Records – Library MS{% endblock %}
+{% block page_title %}Issued Book Records{% endblock %}
+
+{% block content %}
+<div class="flex-between">
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <span class="pill pill-blue" style="padding:7px 14px;font-size:.82rem">
+      <i class="fas fa-arrow-right-from-bracket"></i>
+      {{ records | selectattr('status','eq','Issued') | list | length }} Currently Issued
+    </span>
+    <span class="pill pill-red" style="padding:7px 14px;font-size:.82rem">
+      <i class="fas fa-clock"></i>
+      {{ records | selectattr('days_overdue','gt',0) | list | length }} Overdue
+    </span>
+    <span class="pill pill-green" style="padding:7px 14px;font-size:.82rem">
+      <i class="fas fa-check"></i>
+      {{ records | selectattr('status','eq','Returned') | list | length }} Returned
+    </span>
+  </div>
+  <a href="{{ url_for('issue_book') }}" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Issue New
+  </a>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Book</th>
+          <th>Member</th>
+          <th>Issue Date</th>
+          <th>Due Date</th>
+          <th>Return Date</th>
+          <th>Days Late</th>
+          <th>Fine (₹)</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td class="text-muted">{{ r.id }}</td>
+          <td style="font-weight:500;max-width:170px">{{ r.title[:28] }}{% if r.title|length > 28 %}…{% endif %}</td>
+          <td>
+            <div>{{ r.member_name }}</div>
+            <div class="text-muted" style="font-size:.74rem">{{ r.phone or '' }}</div>
+          </td>
+          <td class="text-muted">{{ r.issue_date }}</td>
+          <td class="{{ 'text-muted' if r.status == 'Returned' else '' }}"
+              style="{{ 'color:var(--danger)' if r.days_overdue > 0 }}">
+            {{ r.due_date }}
+          </td>
+          <td class="text-muted">{{ r.return_date or '—' }}</td>
+          <td style="{{ 'color:var(--danger)' if r.days_overdue > 0 }}">
+            {{ r.days_overdue if r.days_overdue > 0 else '—' }}
+          </td>
+          <td style="{{ 'color:var(--danger)' if r.fine > 0 }}">
+            {{ '₹' + r.fine|int|string if r.fine > 0 else '—' }}
+          </td>
+          <td>
+            {% if r.status == 'Returned' %}
+              <span class="pill pill-green">Returned</span>
+            {% elif r.days_overdue > 0 %}
+              <span class="pill pill-red">Overdue</span>
+            {% else %}
+              <span class="pill pill-blue">Issued</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if r.status == 'Issued' %}
+              <a href="{{ url_for('return_book', issue_id=r.id) }}" class="btn btn-success btn-sm">
+                <i class="fas fa-rotate-left"></i> Return
+              </a>
+            {% else %}
+              <span class="text-muted" style="font-size:.78rem">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="10" style="text-align:center;padding:36px;color:var(--muted)">No records found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

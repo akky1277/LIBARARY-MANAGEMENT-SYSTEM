@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% block title %}Issue Book – Library MS{% endblock %}
+{% block page_title %}Issue a Book{% endblock %}
+
+{% block content %}
+<div style="max-width:650px">
+  <div class="card">
+    <form method="POST" id="issue-form">
+
+      <!-- Book Search -->
+      <div class="form-group" style="margin-bottom:22px">
+        <label>Search & Select Book *</label>
+        <input type="text" id="book-search" placeholder="Start typing book title or author…" autocomplete="off">
+        <div id="book-suggestions" style="display:none;background:var(--bg);border:1px solid var(--border);
+             border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;position:relative;z-index:10"></div>
+        <input type="hidden" name="book_id" id="book_id" required>
+        <div id="selected-book" style="display:none;margin-top:10px;padding:10px 14px;
+             background:rgba(212,168,67,.08);border:1px solid rgba(212,168,67,.25);
+             border-radius:8px;font-size:.85rem"></div>
+      </div>
+
+      <!-- Member Search -->
+      <div class="form-group" style="margin-bottom:22px">
+        <label>Search & Select Member *</label>
+        <input type="text" id="member-search" placeholder="Start typing member name or email…" autocomplete="off">
+        <div id="member-suggestions" style="display:none;background:var(--bg);border:1px solid var(--border);
+             border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;position:relative;z-index:10"></div>
+        <input type="hidden" name="member_id" id="member_id" required>
+        <div id="selected-member" style="display:none;margin-top:10px;padding:10px 14px;
+             background:rgba(74,158,221,.08);border:1px solid rgba(74,158,221,.25);
+             border-radius:8px;font-size:.85rem"></div>
+      </div>
+
+      <div class="form-grid" style="margin-bottom:22px">
+        <div class="form-group">
+          <label>Issue Date</label>
+          <input type="date" name="issue_date" id="issue_date" value="{{ today }}" required>
+        </div>
+        <div class="form-group">
+          <label>Due Date (default: 14 days)</label>
+          <input type="date" name="due_date"  id="due_date"  value="{{ default_due }}" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-arrow-right-from-bracket"></i> Issue Book
+      </button>
+    </form>
+  </div>
+
+  <!-- Fallback manual selects (hidden by default, shown if JS fails) -->
+  <details style="margin-top:20px">
+    <summary style="cursor:pointer;color:var(--muted);font-size:.82rem">
+      <i class="fas fa-chevron-right"></i> Use dropdown instead (no live search)
+    </summary>
+    <div class="card" style="margin-top:12px">
+      <form method="POST">
+        <div class="form-group" style="margin-bottom:14px">
+          <label>Select Book</label>
+          <select name="book_id" required>
+            {% for b in books %}<option value="{{ b.id }}">{{ b.title }} – {{ b.author }} ({{ b.available }} avail.)</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label>Select Member</label>
+          <select name="member_id" required>
+            {% for m in members %}<option value="{{ m.id }}">{{ m.name }} ({{ m.member_type }})</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Issue Date</label>
+            <input type="date" name="issue_date" value="{{ today }}">
+          </div>
+          <div class="form-group">
+            <label>Due Date</label>
+            <input type="date" name="due_date" value="{{ default_due }}">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top:14px">Issue Book</button>
+      </form>
+    </div>
+  </details>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Live-search helper ──────────────────────────────────
+function liveSearch(inputEl, suggestEl, endpoint, hiddenEl, selectedEl, formatFn) {
+  let timer;
+  inputEl.addEventListener('input', () => {
+    clearTimeout(timer);
+    const q = inputEl.value.trim();
+    if (q.length < 1) { suggestEl.style.display = 'none'; return; }
+    timer = setTimeout(async () => {
+      const res  = await fetch(`${endpoint}?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      suggestEl.innerHTML = '';
+      if (!data.length) {
+        suggestEl.innerHTML = '<div style="padding:12px 16px;color:var(--muted);font-size:.84rem">No results found.</div>';
+      }
+      data.forEach(item => {
+        const div = document.createElement('div');
+        div.innerHTML = formatFn(item);
+        div.style.cssText = 'padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--border);font-size:.85rem;transition:background .15s';
+        div.addEventListener('mouseenter', () => div.style.background = 'rgba(255,255,255,.04)');
+        div.addEventListener('mouseleave', () => div.style.background = '');
+        div.addEventListener('click', () => {
+          hiddenEl.value  = item.id;
+          inputEl.value   = '';
+          suggestEl.style.display = 'none';
+          selectedEl.innerHTML = formatFn(item);
+          selectedEl.style.display = 'block';
+        });
+        suggestEl.appendChild(div);
+      });
+      suggestEl.style.display = 'block';
+    }, 250);
+  });
+  document.addEventListener('click', e => {
+    if (!suggestEl.contains(e.target) && e.target !== inputEl)
+      suggestEl.style.display = 'none';
+  });
+}
+
+liveSearch(
+  document.getElementById('book-search'),
+  document.getElementById('book-suggestions'),
+  '/api/books/search',
+  document.getElementById('book_id'),
+  document.getElementById('selected-book'),
+  b => `📖 <strong>${b.title}</strong> — <span style="color:var(--muted)">${b.author}</span>
+        <span style="float:right;color:var(--success)">${b.available} avail.</span>`
+);
+
+liveSearch(
+  document.getElementById('member-search'),
+  document.getElementById('member-suggestions'),
+  '/api/members/search',
+  document.getElementById('member_id'),
+  document.getElementById('selected-member'),
+  m => `👤 <strong>${m.name}</strong> — <span style="color:var(--muted)">${m.email||m.phone||''}</span>`
+);
+
+// Auto-adjust due date when issue date changes
+document.getElementById('issue_date').addEventListener('change', function() {
+  const d = new Date(this.value);
+  d.setDate(d.getDate() + 14);
+  document.getElementById('due_date').value = d.toISOString().split('T')[0];
+});
+
+// Validate that dropdowns are selected before submit
+document.getElementById('issue-form').addEventListener('submit', e => {
+  if (!document.getElementById('book_id').value ||
+      !document.getElementById('member_id').value) {
+    e.preventDefault();
+    alert('Please select both a book and a member using the search fields above.');
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Members – Library MS{% endblock %}
+{% block page_title %}Member Directory{% endblock %}
+
+{% block content %}
+<div class="flex-between">
+  <form class="search-bar" method="GET" style="margin-bottom:0">
+    <input type="text" name="q" value="{{ search }}" placeholder="Search name, email, phone…" style="min-width:260px">
+    <button class="btn btn-primary btn-sm" type="submit"><i class="fas fa-search"></i> Search</button>
+    {% if search %}
+      <a href="{{ url_for('members') }}" class="btn btn-sm" style="border:1px solid var(--border);color:var(--muted)">
+        <i class="fas fa-xmark"></i> Clear
+      </a>
+    {% endif %}
+  </form>
+  <a href="{{ url_for('add_member') }}" class="btn btn-primary">
+    <i class="fas fa-user-plus"></i> Add Member
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Name</th><th>Email</th><th>Phone</th>
+          <th>Type</th><th>Joined</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in members %}
+        <tr>
+          <td class="text-muted">{{ m.id }}</td>
+          <td style="font-weight:500">{{ m.name }}</td>
+          <td class="text-muted">{{ m.email or '—' }}</td>
+          <td class="text-muted">{{ m.phone or '—' }}</td>
+          <td>
+            <span class="pill {{ 'pill-blue' if m.member_type == 'Student' else 'pill-gold' }}">
+              {{ m.member_type }}
+            </span>
+          </td>
+          <td class="text-muted">{{ m.joined_on }}</td>
+          <td>
+            <span class="pill {{ 'pill-green' if m.active else 'pill-red' }}">
+              {{ 'Active' if m.active else 'Inactive' }}
+            </span>
+          </td>
+          <td>
+            <div class="gap-8">
+              <a href="{{ url_for('edit_member', member_id=m.id) }}" class="btn btn-info btn-sm">
+                <i class="fas fa-pen"></i>
+              </a>
+              <form method="POST" action="{{ url_for('delete_member', member_id=m.id) }}"
+                    onsubmit="return confirm('Delete this member?')">
+                <button class="btn btn-danger btn-sm" type="submit">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" style="text-align:center;padding:36px;color:var(--muted)">
+            <i class="fas fa-users" style="font-size:2rem;opacity:.3;display:block;margin-bottom:10px"></i>
+            No members found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="text-muted mt-16">{{ members | length }} member(s) shown</div>
+</div>
+{% endblock %}

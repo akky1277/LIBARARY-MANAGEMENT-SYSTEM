@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Library MS{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --bg:       #0f1117;
+      --surface:  #181c27;
+      --card:     #1e2333;
+      --border:   #2a3047;
+      --gold:     #d4a843;
+      --gold2:    #f0c864;
+      --text:     #e8ecf4;
+      --muted:    #8892a4;
+      --danger:   #e05252;
+      --success:  #4caf7d;
+      --info:     #4a9edd;
+      --warn:     #e0963c;
+      --radius:   10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex; min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 240px; flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; height: 100vh;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 28px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem; color: var(--gold);
+      line-height: 1.3;
+    }
+    .sidebar-logo p { font-size: .72rem; color: var(--muted); margin-top: 3px; }
+
+    .nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+    .nav-section { font-size: .65rem; color: var(--muted); text-transform: uppercase;
+                   letter-spacing: .1em; padding: 12px 8px 6px; }
+    .nav a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 8px;
+      color: var(--muted); text-decoration: none; font-size: .88rem;
+      transition: all .2s; margin-bottom: 2px;
+    }
+    .nav a:hover, .nav a.active {
+      background: rgba(212,168,67,.1); color: var(--gold);
+    }
+    .nav a i { width: 18px; text-align: center; font-size: .9rem; }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      font-size: .8rem; color: var(--muted);
+    }
+    .sidebar-footer strong { color: var(--text); display: block; margin-bottom: 2px; }
+    .sidebar-footer a { color: var(--danger); text-decoration: none; font-size: .78rem; }
+
+    /* ── Main ── */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .topbar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--text); }
+    .topbar .badge { background: rgba(212,168,67,.15); color: var(--gold);
+                     padding: 4px 12px; border-radius: 20px; font-size: .78rem; }
+
+    .content { padding: 28px; flex: 1; }
+
+    /* ── Flash Messages ── */
+    .alerts { margin-bottom: 20px; }
+    .alert {
+      padding: 12px 18px; border-radius: var(--radius);
+      margin-bottom: 10px; font-size: .88rem; display: flex; align-items: center; gap: 10px;
+    }
+    .alert-success { background: rgba(76,175,125,.15); color: var(--success); border: 1px solid rgba(76,175,125,.3); }
+    .alert-danger  { background: rgba(224,82,82,.15);  color: var(--danger);  border: 1px solid rgba(224,82,82,.3); }
+    .alert-warning { background: rgba(224,150,60,.15); color: var(--warn);    border: 1px solid rgba(224,150,60,.3); }
+    .alert-info    { background: rgba(74,158,221,.15); color: var(--info);    border: 1px solid rgba(74,158,221,.3); }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 22px;
+    }
+    .card-title { font-size: .75rem; color: var(--muted); text-transform: uppercase;
+                  letter-spacing: .08em; margin-bottom: 14px; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 9px 18px; border-radius: 8px; border: none;
+      font-size: .85rem; font-family: inherit; cursor: pointer;
+      text-decoration: none; transition: all .2s; font-weight: 500;
+    }
+    .btn-primary  { background: var(--gold);    color: #0f1117; }
+    .btn-primary:hover  { background: var(--gold2); }
+    .btn-danger   { background: rgba(224,82,82,.15);  color: var(--danger);  border: 1px solid rgba(224,82,82,.4); }
+    .btn-danger:hover   { background: rgba(224,82,82,.3); }
+    .btn-info     { background: rgba(74,158,221,.15); color: var(--info);    border: 1px solid rgba(74,158,221,.4); }
+    .btn-info:hover     { background: rgba(74,158,221,.3); }
+    .btn-success  { background: rgba(76,175,125,.15); color: var(--success); border: 1px solid rgba(76,175,125,.4); }
+    .btn-success:hover  { background: rgba(76,175,125,.3); }
+    .btn-sm { padding: 6px 12px; font-size: .78rem; }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius); }
+    table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+    thead th { background: rgba(255,255,255,.04); color: var(--muted);
+               font-size: .72rem; text-transform: uppercase; letter-spacing: .06em;
+               padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    tbody td { padding: 12px 16px; border-bottom: 1px solid rgba(42,48,71,.6); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,.02); }
+
+    /* ── Badges ── */
+    .pill {
+      display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .73rem; font-weight: 500;
+    }
+    .pill-green  { background: rgba(76,175,125,.15); color: var(--success); }
+    .pill-red    { background: rgba(224,82,82,.15);  color: var(--danger);  }
+    .pill-blue   { background: rgba(74,158,221,.15); color: var(--info);    }
+    .pill-orange { background: rgba(224,150,60,.15); color: var(--warn);    }
+    .pill-gold   { background: rgba(212,168,67,.15); color: var(--gold);    }
+
+    /* ── Form ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: .8rem; color: var(--muted); }
+    input, select, textarea {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); padding: 10px 14px; font-size: .88rem; font-family: inherit;
+      transition: border .2s; outline: none; width: 100%;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--gold); }
+    select option { background: var(--bg); }
+
+    /* ── Search bar ── */
+    .search-bar {
+      display: flex; gap: 10px; align-items: center; margin-bottom: 20px;
+    }
+    .search-bar input { max-width: 320px; }
+
+    /* ── Misc ── */
+    .flex-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .text-muted { color: var(--muted); font-size: .82rem; }
+    .mt-16 { margin-top: 16px; }
+    .gap-8 { display: flex; gap: 8px; }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ── SIDEBAR ─────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>📚 LibraryMS</h1>
+    <p>Management System v1.0</p>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Main</div>
+    <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' }}">
+      <i class="fas fa-th-large"></i> Dashboard
+    </a>
+
+    <div class="nav-section">Catalogue</div>
+    <a href="{{ url_for('books') }}" class="{{ 'active' if 'book' in (request.endpoint or '') }}">
+      <i class="fas fa-book"></i> Books
+    </a>
+    <a href="{{ url_for('members') }}" class="{{ 'active' if 'member' in (request.endpoint or '') }}">
+      <i class="fas fa-users"></i> Members
+    </a>
+
+    <div class="nav-section">Circulation</div>
+    <a href="{{ url_for('issue_book') }}" class="{{ 'active' if request.endpoint == 'issue_book' }}">
+      <i class="fas fa-arrow-right-from-bracket"></i> Issue Book
+    </a>
+    <a href="{{ url_for('issued_list') }}" class="{{ 'active' if request.endpoint == 'issued_list' }}">
+      <i class="fas fa-list-check"></i> Issued Records
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <strong>{{ session.get('admin_name','Admin') }}</strong>
+    Administrator
+    <br><br>
+    <a href="{{ url_for('logout') }}"><i class="fas fa-right-from-bracket"></i> Logout</a>
+  </div>
+</aside>
+
+<!-- ── MAIN ────────────────────────────────────────── -->
+<div class="main">
+  <div class="topbar">
+    <h2>{% block page_title %}Library Management System{% endblock %}</h2>
+    <span class="badge"><i class="fas fa-calendar-alt"></i> {{ now.strftime('%d %b %Y') if now else '' }}</span>
+  </div>
+  <div class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alerts">
+          {% for cat, msg in messages %}
+            <div class="alert alert-{{ cat }}">
+              <i class="fas fa-circle-info"></i> {{ msg }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<script>
+// Inject current date for topbar
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.badge').forEach(b=>{
+    b.innerHTML = '<i class="fas fa-calendar-alt"></i> ' +
+      new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  });
+});
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

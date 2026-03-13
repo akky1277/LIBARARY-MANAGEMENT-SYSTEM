@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard – Library MS{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px; display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden;
+  }
+  .stat-card::after {
+    content: ''; position: absolute; right: -20px; top: -20px;
+    width: 80px; height: 80px; border-radius: 50%;
+    background: var(--accent-color, rgba(212,168,67,.08));
+  }
+  .stat-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+  }
+  .stat-label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .stat-value { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--text); line-height: 1; }
+  .stat-sub   { font-size: .75rem; color: var(--muted); }
+
+  .two-col { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+
+  /* Mini chart bars */
+  .bar-chart { display: flex; flex-direction: column; gap: 10px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; font-size: .8rem; }
+  .bar-label { width: 130px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; height: 8px; background: rgba(255,255,255,.06); border-radius: 4px; }
+  .bar-fill  { height: 100%; border-radius: 4px; background: var(--gold); transition: width .6s ease; }
+  .bar-count { width: 30px; text-align: right; color: var(--gold); font-size: .78rem; }
+
+  @media(max-width:900px) {
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .two-col   { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Stat Cards ── -->
+<div class="stat-grid">
+
+  <div class="stat-card" style="--accent-color:rgba(212,168,67,.12)">
+    <div class="stat-icon" style="background:rgba(212,168,67,.15);color:var(--gold)">
+      <i class="fas fa-book"></i>
+    </div>
+    <div>
+      <div class="stat-label">Total Books</div>
+      <div class="stat-value">{{ stats.total_books }}</div>
+      <div class="stat-sub">{{ stats.available_books }} copies available</div>
+    </div>
+  </div>
+
+  <div class="stat-card" style="--accent-color:rgba(74,158,221,.12)">
+    <div class="stat-icon" style="background:rgba(74,158,221,.15);color:var(--info)">
+      <i class="fas fa-users"></i>
+    </div>
+    <div>
+      <div class="stat-label">Total Members</div>
+      <div class="stat-value">{{ stats.total_members }}</div>
+      <div class="stat-sub">Active library members</div>
+    </div>
+  </div>
+
+  <div class="stat-card" style="--accent-color:rgba(76,175,125,.12)">
+    <div class="stat-icon" style="background:rgba(76,175,125,.15);color:var(--success)">
+      <i class="fas fa-arrow-right-from-bracket"></i>
+    </div>
+    <div>
+      <div class="stat-label">Books Issued</div>
+      <div class="stat-value">{{ stats.issued_books }}</div>
+      <div class="stat-sub">Currently checked out</div>
+    </div>
+  </div>
+
+  <div class="stat-card" style="--accent-color:rgba(224,82,82,.12)">
+    <div class="stat-icon" style="background:rgba(224,82,82,.15);color:var(--danger)">
+      <i class="fas fa-clock"></i>
+    </div>
+    <div>
+      <div class="stat-label">Overdue Books</div>
+      <div class="stat-value">{{ stats.overdue_books }}</div>
+      <div class="stat-sub">Past due date</div>
+    </div>
+  </div>
+
+  <div class="stat-card" style="--accent-color:rgba(224,150,60,.12)">
+    <div class="stat-icon" style="background:rgba(224,150,60,.15);color:var(--warn)">
+      <i class="fas fa-indian-rupee-sign"></i>
+    </div>
+    <div>
+      <div class="stat-label">Fine Collected</div>
+      <div class="stat-value">₹{{ stats.total_fine | int }}</div>
+      <div class="stat-sub">From returned books</div>
+    </div>
+  </div>
+
+  <div class="stat-card" style="--accent-color:rgba(212,168,67,.12)">
+    <div class="stat-icon" style="background:rgba(212,168,67,.15);color:var(--gold)">
+      <i class="fas fa-plus"></i>
+    </div>
+    <div class="stat-label" style="padding-top:6px">Quick Actions</div>
+    <a href="{{ url_for('add_book') }}"   class="btn btn-primary btn-sm" style="margin-top:4px">
+      <i class="fas fa-plus"></i> Add Book
+    </a>
+    <a href="{{ url_for('add_member') }}" class="btn btn-info btn-sm">
+      <i class="fas fa-user-plus"></i> Add Member
+    </a>
+  </div>
+
+</div>
+
+<!-- ── Two-column: Recent Activity + Category Chart ── -->
+<div class="two-col">
+
+  <!-- Recent Issues -->
+  <div class="card">
+    <div class="card-title">Recent Circulation Activity</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Book</th><th>Member</th><th>Due Date</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in recent %}
+          <tr>
+            <td class="text-muted">{{ r.id }}</td>
+            <td>
+              <div style="font-weight:500">{{ r.title[:30] }}{% if r.title|length > 30 %}…{% endif %}</div>
+            </td>
+            <td class="text-muted">{{ r.member_name }}</td>
+            <td class="text-muted">{{ r.due_date }}</td>
+            <td>
+              {% if r.status == 'Returned' %}
+                <span class="pill pill-green">Returned</span>
+              {% elif r.is_overdue %}
+                <span class="pill pill-red">Overdue</span>
+              {% else %}
+                <span class="pill pill-blue">Issued</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-muted" style="text-align:center;padding:24px">No records yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:14px">
+      <a href="{{ url_for('issued_list') }}" class="btn btn-info btn-sm">View All Records →</a>
+    </div>
+  </div>
+
+  <!-- Category Bar Chart -->
+  <div class="card">
+    <div class="card-title">Books by Category</div>
+    {% set max_cnt = categories | map(attribute='cnt') | max if categories else 1 %}
+    <div class="bar-chart">
+      {% for cat in categories %}
+      <div class="bar-row">
+        <div class="bar-label" title="{{ cat.category }}">{{ cat.category }}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:{{ (cat.cnt / max_cnt * 100) | int }}%"></div>
+        </div>
+        <div class="bar-count">{{ cat.cnt }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
