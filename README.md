@@ -1,9 +1,9 @@
-# 📚 Library Management System (LMS)
+#  Library Management System (LMS)
 > B.Tech Final Year Project | Python Flask + SQLite + HTML/CSS/JS
 
 ---
 
-## 🗂️ Project Structure
+##  Project Structure
 
 ```
 library_lms/
@@ -27,7 +27,7 @@ library_lms/
 
 ---
 
-## ⚡ Quick Start
+##  Quick Start
 
 ### 1. Install Python (3.8+)
 Download from https://python.org
@@ -56,7 +56,7 @@ The database (`library.db`) is created automatically with sample data.
 
 ---
 
-## 🔑 Features
+##  Features
 
 | Feature              | Details                                    |
 |---------------------|--------------------------------------------|
@@ -70,7 +70,7 @@ The database (`library.db`) is created automatically with sample data.
 
 ---
 
-## 🗄️ Database Tables
+##  Database Tables
 
 | Table          | Purpose                              |
 |----------------|--------------------------------------|
@@ -81,7 +81,7 @@ The database (`library.db`) is created automatically with sample data.
 
 ---
 
-## 🚀 Advanced Features to Add (Future Scope)
+##  Advanced Features to Add (Future Scope)
 
 1. **Barcode Scanning** – Use `python-barcode` or `pyzbar` + webcam
 2. **Email Notifications** – `Flask-Mail` for overdue reminders
@@ -96,7 +96,7 @@ The database (`library.db`) is created automatically with sample data.
 
 ---
 
-## 📸 Layout Description (Screenshots)
+##  Layout Description (Screenshots)
 
 ### Login Page
 - Dark background with golden grid
@@ -128,7 +128,7 @@ The database (`library.db`) is created automatically with sample data.
 
 ---
 
-## 👨‍💻 Tech Stack
+##  Tech Stack
 
 - **Backend**: Python 3.x + Flask 3.x
 - **Database**: SQLite (built-in, no setup needed)
